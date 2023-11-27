@@ -107,6 +107,29 @@ static Common::WriteStream *openTGA(const Common::UString &fileName, int width, 
 	return file.release();
 }
 
+static Common::WriteStream *openTPC(const Common::UString &fileName, int width, int height) {
+	std::unique_ptr<Common::WriteFile> file = std::make_unique<Common::WriteFile>(fileName);
+
+	throw std::runtime_error("unimplemented yet.");
+
+	file->writeByte(0);     // ID Length
+	file->writeByte(0);     // Palette size
+	file->writeByte(2);     // Unmapped RGB
+	file->writeUint32LE(0); // Color map
+	file->writeByte(0);     // Color map
+	file->writeUint16LE(0); // X
+	file->writeUint16LE(0); // Y
+
+	file->writeUint16LE(width);
+	file->writeUint16LE(height);
+
+	file->writeByte(32); // Pixel depths
+
+	file->writeByte(0);
+
+	return file.release();
+}
+
 static void writeMipMap(Common::WriteStream &stream, const Decoder::MipMap &mipMap, PixelFormat format) {
 	const byte *data = mipMap.data.get();
 
@@ -132,6 +155,30 @@ void dumpTGA(const Common::UString &fileName, const Decoder &image) {
 	}
 
 	std::unique_ptr<Common::WriteStream> file(openTGA(fileName, width, height));
+
+	for (size_t i = 0; i < image.getLayerCount(); i++)
+		writeMipMap(*file, image.getMipMap(0, i), image.getFormat());
+
+	file->flush();
+}
+
+void dumpTPC(const Common::UString &fileName, const Decoder &image) {
+	if ((image.getLayerCount() < 1) || (image.getMipMapCount() < 1))
+		throw Common::Exception("No image");
+
+	int32_t width  = image.getMipMap(0, 0).width;
+	int32_t height = 0;
+
+	for (size_t i = 0; i < image.getLayerCount(); i++) {
+		const Decoder::MipMap &mipMap = image.getMipMap(0, i);
+
+		if (mipMap.width != width)
+			throw Common::Exception("dumpTGA(): Unsupported image with variable layer width");
+
+		height += mipMap.height;
+	}
+
+	std::unique_ptr<Common::WriteStream> file(openTPC(fileName, width, height));
 
 	for (size_t i = 0; i < image.getLayerCount(); i++)
 		writeMipMap(*file, image.getMipMap(0, i), image.getFormat());

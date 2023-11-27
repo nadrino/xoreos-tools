@@ -194,6 +194,21 @@ void Decoder::dumpTGA(const Common::UString &fileName) const {
 	Images::dumpTGA(fileName, decoder);
 }
 
+void Decoder::dumpTPC(const Common::UString &fileName) const {
+	if (_mipMaps.size() < 1)
+		throw Common::Exception("Image contains no mip maps");
+
+	if (!isCompressed()) {
+		Images::dumpTPC(fileName, *this);
+		return;
+	}
+
+	Decoder decoder(*this);
+	decoder.decompress();
+
+	Images::dumpTPC(fileName, decoder);
+}
+
 void Decoder::flipHorizontally() {
 	decompress();
 
