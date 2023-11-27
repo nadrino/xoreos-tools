@@ -245,6 +245,19 @@ src_xoreostex2tga_LDADD = \
     $(LDADD) \
     $(EMPTY)
 
+bin_PROGRAMS += src/xoreostex2tpc
+src_xoreostex2tpc_SOURCES = \
+    src/xoreostex2tpc.cpp \
+    src/util.cpp \
+    $(EMPTY)
+src_xoreostex2tpc_LDADD = \
+    src/images/libimages.la \
+    src/aurora/libaurora.la \
+    src/common/libcommon.la \
+    src/version/libversion.la \
+    $(LDADD) \
+    $(EMPTY)
+
 bin_PROGRAMS += src/nbfs2tga
 src_nbfs2tga_SOURCES = \
     src/nbfs2tga.cpp \

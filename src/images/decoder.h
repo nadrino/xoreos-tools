@@ -87,6 +87,9 @@ public:
 	/** Dump the image into a TGA. */
 	void dumpTGA(const Common::UString &fileName) const;
 
+	/** Dump the image into a TGA. */
+	void dumpTPC(const Common::UString &fileName) const;
+
 	/** Flip the whole image horizontally. */
 	void flipHorizontally();
 	/** Flip the whole image vertically. */

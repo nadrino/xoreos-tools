@@ -40,6 +40,9 @@ class Decoder;
 /** Dump image into a TGA file. */
 void dumpTGA(const Common::UString &fileName, const Decoder &image);
 
+/** Dump image into a TPC file. */
+void dumpTPC(const Common::UString &fileName, const Decoder &image);
+
 } // End of namespace Images
 
 #endif // IMAGES_DUMPTGA_H
