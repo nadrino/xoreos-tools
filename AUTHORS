@@ -1,5 +1,5 @@
 xoreos-tools - Tools to help with xoreos development
-Copyright (c) 2012-2023 by the following:
+Copyright (c) 2012-2025 by the following:
 
 Sven Hesse (DrMcCoy) <drmccoy@drmccoy.de>
 Matthew Hoops (clone2727) <clone2727@gmail.com>
@@ -19,6 +19,7 @@ Patrick (Nostritius) <nostritius@googlemail.com>
 Bob Hall (rjshae) <rjh405@gmail.com>
 Cameron Cawley (ccawley2011) <ccawley2011@gmail.com>
 Charlotte Koch <cfkoch@edgebsd.org>
+Benjamin Funke (BJNFNE) <bjnfne@web.de>
 
 
 xoreos-tools is free software; you can redistribute it and/or
