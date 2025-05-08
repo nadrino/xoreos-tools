@@ -35,10 +35,9 @@
 #include "src/common/error.h"
 #include "src/common/platform.h"
 #include "src/common/readstream.h"
+#include "src/common/writestream.h"
 #include "src/common/readfile.h"
 #include "src/common/cli.h"
-#include "src/common/writefile.h"
-#include "src/common/filepath.h"
 
 #include "src/aurora/types.h"
 #include "src/aurora/util.h"
@@ -54,10 +53,10 @@
 
 bool parseCommandLine(const std::vector<Common::UString> &argv, int &returnValue,
                       Common::UString &inFile, Common::UString &outFile,
-                      Aurora::FileType &type, bool &flip, bool &deswizzle);
+                      Aurora::FileType &type, bool &flip, bool &deswizzle, bool& withTxi);
 
 void convert(const Common::UString &inFile, const Common::UString &outFile,
-             Aurora::FileType type, bool flip, bool deswizzle);
+             Aurora::FileType type, bool flip, bool deswizzle, bool withTxi);
 
 int main(int argc, char **argv) {
 	initPlatform();
@@ -70,11 +69,12 @@ int main(int argc, char **argv) {
 		Common::UString inFile, outFile;
 		Aurora::FileType type = Aurora::kFileTypeNone;
 		bool flip = false, deswizzle = false;
+    bool withTxi = false;
 
-		if (!parseCommandLine(args, returnValue, inFile, outFile, type, flip, deswizzle))
+		if (!parseCommandLine(args, returnValue, inFile, outFile, type, flip, deswizzle, withTxi))
 			return returnValue;
 
-		convert(inFile, outFile, type, flip, deswizzle);
+		convert(inFile, outFile, type, flip, deswizzle, withTxi);
 	} catch (...) {
 		Common::exceptionDispatcherError();
 	}
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
 
 bool parseCommandLine(const std::vector<Common::UString> &argv, int &returnValue,
                       Common::UString &inFile, Common::UString &outFile,
-                      Aurora::FileType &type, bool &flip, bool &deswizzle) {
+                      Aurora::FileType &type, bool &flip, bool &deswizzle, bool& withTxi) {
 
 	using Common::CLI::NoOption;
 	using Common::CLI::kContinueParsing;
@@ -121,6 +121,9 @@ bool parseCommandLine(const std::vector<Common::UString> &argv, int &returnValue
 	parser.addSpace();
 	parser.addOption("deswizzle", 'd', "Input file is an Xbox SBM that needs deswizzling",
 	                 kContinueParsing, makeAssigners(new ValAssigner<bool>(true, deswizzle)));
+	parser.addSpace();
+	parser.addOption("withTxi", "Extract TXI data from TPC",
+	                 kContinueParsing, makeAssigners(new ValAssigner<bool>(true, withTxi)));
 	return parser.process(argv);
 }
 
@@ -174,7 +177,7 @@ static Images::Decoder *openImage(Common::SeekableReadStream &stream, Aurora::Fi
 }
 
 void convert(const Common::UString &inFile, const Common::UString &outFile,
-             Aurora::FileType type, bool flip, bool deswizzle) {
+             Aurora::FileType type, bool flip, bool deswizzle, bool withTxi) {
 
 	Common::ReadFile in(inFile);
 
@@ -197,11 +200,23 @@ void convert(const Common::UString &inFile, const Common::UString &outFile,
 
 	image->dumpTGA(outFile);
 
-	std::unique_ptr<Common::SeekableReadStream> txiData(image->getTXI());
-	if (txiData != nullptr) {
-		Common::WriteFile f(Common::FilePath::changeExtension(outFile, "txi"));
-		f.writeStream(*txiData);
-		f.close();
-	}
+  if( withTxi and type == Aurora::kFileTypeTPC ){
+    auto* txiStream = ((Images::TPC*) image.get())->getTXI();
+    if( txiStream != nullptr ){
 
+      std::string txiStr(outFile.c_str());
+      if( outFile.endsWith(".tga") ){
+        txiStr[outFile.size()-2] = 'x';
+        txiStr[outFile.size()-1] = 'i';
+      }
+      else{
+        txiStr += ".txi";
+      }
+      Common::UString txiFilename(txiStr);
+
+      std::unique_ptr<Common::WriteStream> file(openFileOrStdOut( txiFilename ));
+      file->writeStream( *txiStream );
+      file->flush();
+    }
+  }
 }

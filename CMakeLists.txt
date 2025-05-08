@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with xoreos-tools. If not, see <http://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.10.0)
 
 project(xoreos-tools CXX)
 set(xoreos-tools_VERSION 0.0.6)
@@ -26,6 +26,20 @@ set(xoreos-tools_VERSION 0.0.6)
 # -------------------------------------------------------------------------
 # options!
 option(Boost_USE_STATIC_LIBS "Use Boost static libraries" OFF)
+
+
+# -------------------------------------------------------------------------
+# default build type
+
+set(default_build_type "Debug")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+      STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
 
 
 # -------------------------------------------------------------------------
@@ -263,6 +277,10 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 # find the required libraries
 set(XOREOSTOOLS_LIBRARIES "")
 
+find_package(Iconv REQUIRED)
+include_directories(${Iconv_INCLUDE_DIRS})
+list(APPEND XOREOSTOOLS_LIBRARIES ${Iconv_LIBRARIES})
+
 find_package(ZLIB REQUIRED)
 include_directories(${ZLIB_INCLUDE_DIRS})
 list(APPEND XOREOSTOOLS_LIBRARIES ${ZLIB_LIBRARIES})
@@ -280,10 +298,6 @@ list(APPEND XOREOSTOOLS_LIBRARIES ${LIBLZMA_LIBRARY})
 find_package(LibXml2 REQUIRED)
 include_directories(${LIBXML2_INCLUDE_DIR})
 list(APPEND XOREOSTOOLS_LIBRARIES ${LIBXML2_LIBRARIES})
-
-find_package(Iconv REQUIRED)
-include_directories(${ICONV_INCLUDE_DIRS})
-list(APPEND XOREOSTOOLS_LIBRARIES ${ICONV_LIBRARIES})
 
 if(ICONV_SECOND_ARGUMENT_IS_CONST)
   add_definitions(-DICONV_CONST=const)
